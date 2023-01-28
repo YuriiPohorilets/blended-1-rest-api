@@ -9,7 +9,7 @@ class BooksController {
       // res
       //   .status(400)
       //   .json({ code: 400, message: "Plese provide all required fields" });
-      res.status(405);
+      res.status(400);
       throw new Error("Plese provide all required fields");
     }
 

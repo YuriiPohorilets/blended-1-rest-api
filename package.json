@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "server": "cross-env yura=potato kirill=apple nodemon backend/server.js",
+    "start": "cross-env NODE_ENV=production node backend/server.js",
+   "server": "cross-env yura=potato kirill=apple NODE_ENV=development nodemon backend/server.js",
     "client": "npm start --prefix frontend",
     "client:install": "npm i --prefix frontend"
   },
