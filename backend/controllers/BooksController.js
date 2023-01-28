@@ -13,7 +13,7 @@ class BooksController {
       throw new Error("Plese provide all required fields");
     }
 
-    // await BooksModel.create({ ...req.body });
+    await BooksModel.create({ ...req.body });
   });
 
   getAll(req, res) {
