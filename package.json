@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node backend/server.js",
-   "server": "cross-env yura=potato kirill=apple NODE_ENV=development nodemon backend/server.js",
+    "server": "cross-env yura=potato kirill=apple NODE_ENV=development nodemon backend/server.js",
     "client": "npm start --prefix frontend",
     "client:install": "npm i --prefix frontend"
   },
@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "colors": "^1.4.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
