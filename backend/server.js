@@ -1,11 +1,12 @@
 const express = require("express");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const connectDb = require("../config/db");
 require("colors");
 const bcrypt = require("bcrypt");
 const asyncHandler = require("express-async-handler");
 const UserModel = require("./models/UserModel");
-
+const autorisation = require("./middlewares/autorisation");
 // load config variables
 const configPath = path.join(__dirname, "..", "config", ".env");
 const dotenv = require("dotenv").config({
@@ -67,10 +68,53 @@ app.post(
   })
 );
 
-app.post("/login", (req, res) => {});
-
+app.post(
+  "/login",
+  asyncHandler(async (req, res) => {
+    // Получаем данные от пользователя
+    const { userEmail, userPassword } = req.body;
+    if (!userEmail || !userPassword) {
+      res.status(400);
+      throw new Error("Plese provide all required fields");
+    }
+    // Ищем Пользователя в БД
+    const user = await UserModel.findOne({ userEmail });
+    // Если нашли - расшифровуем пароль
+    const comparePassword = bcrypt.compareSync(userPassword, user.userPassword);
+    // Если не нашли или не можем расшифровать пароль то отправляем на резистрацию - пожалуйста зарегистрируйся
+    if (!user || !comparePassword) {
+      res.status(400);
+      throw new Error("User Not found. Invalid Login or Password");
+    }
+    // Если ншли и расшифровали то выдаем ТОКЕН
+    const token = generateToken(user._id);
+    user.token = token;
+    const tryToSaveToken = await user.save();
+    if (!tryToSaveToken) {
+      res.status(400);
+      throw new Error("Unable to save TOKEN");
+    }
+    res.status(200).json({
+      code: 200,
+      status: "Success",
+      data: {
+        email: user.userEmail,
+        token: user.token,
+      },
+    });
+  })
+);
+function generateToken(data) {
+  const dataForToken = { data };
+  return jwt.sign(dataForToken, "pizza", { expiresIn: "2h" });
+}
 // Для Ауторизации мне нужна миддлвара
-app.get("/logout", (req, res) => {});
+app.get("/logout", autorisation, (req, res) => {
+  console.log(req.user, "<--id");
+  const id = req.user;
+  // Делаем запрос в БД и ищем пользователя по ID
+  // Присваиваем пользователю TOKEN=null
+});
 
 const errorHandler = require("./middlewares/errorHandler");
 
