@@ -13,6 +13,10 @@ const usersSchema = Schema({
     type: String,
     required: [true, "DB: Field Password is required"],
   },
+  token: {
+    type: String,
+    default: null,
+  },
 });
 
 module.exports = model("users", usersSchema);
