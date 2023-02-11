@@ -13,12 +13,31 @@ class BooksController {
       throw new Error("Plese provide all required fields");
     }
 
-    await BooksModel.create({ ...req.body });
+    const book = await BooksModel.create({ ...req.body });
+    if (!book) {
+      res.status(400);
+      throw new Error("Enable to save to DB");
+    }
+    res.status(201).json({
+      code: 201,
+      status: "Success",
+      data: book,
+    });
   });
 
-  getAll(req, res) {
-    res.send("Get all books");
-  }
+  getAll = asyncHandler(async (req, res) => {
+    const books = await BooksModel.find({});
+    if (!books) {
+      res.status(400);
+      throw new Error("Unable to fetch books");
+    }
+    res.status(200).json({
+      code: 200,
+      status: "Success",
+      qty: books.length,
+      data: books,
+    });
+  });
 
   getOne(req, res) {
     res.send("Get one book");
