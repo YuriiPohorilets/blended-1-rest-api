@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const { engine } = require("express-handlebars");
+const sendEmail = require("./services/sendEmail");
 const connectDb = require("../config/db");
 require("colors");
 const bcrypt = require("bcrypt");
@@ -16,15 +18,47 @@ const dotenv = require("dotenv").config({
 // console.log(dotenv);
 console.log(process.env.PORT);
 const app = express();
+app.use(express.static("public"));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set template Engine
+app.engine("handlebars", engine());
+app.set("view engine", "handlebars");
+app.set("views", "backend/views");
 
 // http://localhost:62000/api/v1/books
 // set Routes
 
 app.use("/api/v1", require("./routes/booksRoutes"));
 
+app.get("/", (req, res) => {
+  res.render("home");
+});
+
+app.get("/about", (req, res) => {
+  res.render("about");
+});
+
+app.get("/contact", (req, res) => {
+  res.render("contact");
+});
+
+app.post("/send", async (req, res) => {
+  try {
+    await sendEmail(req.body);
+    res.render("send", {
+      userName: req.body.userName,
+      userEmail: req.body.userEmail,
+      msg: "success",
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+});
 //Регистрация - Добавляем пользователя в БД
 // Аутентификация - это проверка данных, которые ввел Пользователь с тем, что хранится в БД. Обычно это логин и пароль.
 // Аутороизация - это проверка прав Пользователя выпольнять какие-либо действия на сайте.
@@ -109,12 +143,25 @@ function generateToken(data) {
   return jwt.sign(dataForToken, "pizza", { expiresIn: "2h" });
 }
 // Для Ауторизации мне нужна миддлвара
-app.get("/logout", autorisation, (req, res) => {
-  console.log(req.user, "<--id");
-  const id = req.user;
-  // Делаем запрос в БД и ищем пользователя по ID
-  // Присваиваем пользователю TOKEN=null
-});
+app.get(
+  "/logout",
+  autorisation,
+  asyncHandler(async (req, res) => {
+    console.log(req.user, "<--id");
+    const id = req.user;
+    // Делаем запрос в БД и ищем пользователя по ID
+    // Присваиваем пользователю TOKEN=null
+    const currentUser = await UserModel.findByIdAndUpdate(id, { token: null });
+    if (!currentUser) {
+      res.status(400);
+      throw new Error("Unable to logout");
+    }
+    res.status(200).json({
+      code: 200,
+      status: "Logout Success",
+    });
+  })
+);
 
 const errorHandler = require("./middlewares/errorHandler");
 
